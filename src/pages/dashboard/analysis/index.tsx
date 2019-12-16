@@ -7,7 +7,6 @@ import { connect } from 'dva';
 import PageLoading from './components/PageLoading';
 import { getTimeDistance } from './utils/utils';
 import { AnalysisData, OfflineDataType, OfflineChartData } from './data.d';
-import styles from './style.less';
 
 // const pieclient = new WebSocket('ws://cpu14.maas:3030');
 
@@ -25,18 +24,21 @@ function getActiveData() {
 
 function getChartData() {
   const offlineData = [];
+  let t = Math.round(new Date().getTime());
   for (let i = 0; i < 10; i += 1) {
     offlineData.push({
-      x: `${i}`,
+      x: t,
       y1: Math.ceil(Math.random() * 9) / 10,
-      y2: Math.ceil(Math.random() * 9) / 10,
+      // y2: Math.ceil(Math.random() * 9) / 10,
     });
+    t += 3000;
   }
   return offlineData;
 }
 
-// const client = new WebSocket('ws://123.207.89.129:5566/websocket/1');
+const client = new WebSocket('ws://123.207.89.129:9999');
 const client2 = new WebSocket('ws://123.207.89.129:9998');
+const test_client = new WebSocket('ws://123.207.89.129:80/hoseusage');
 
 const IntroduceRow = React.lazy(() => import('./components/IntroduceRow'));
 const OfflineData = React.lazy(() => import('./components/OfflineData'));
@@ -53,6 +55,7 @@ interface AnalysisState {
   offlineChartData: OfflineChartData[];
   currentTabKey: string;
   rangePickerValue: RangePickerValue;
+  time : number;
 }
 
 @connect(
@@ -75,6 +78,7 @@ class Analysis extends Component<AnalysisProps, AnalysisState> {
     offlineChartData: getChartData(),
     currentTabKey: '',
     rangePickerValue: getTimeDistance('year'),
+    time: 0,
   };
 
   reqRef: number = 0;
@@ -96,22 +100,33 @@ class Analysis extends Component<AnalysisProps, AnalysisState> {
     const win_url = window.location.href;
     var tmp = win_url.split('/');
     console.log(tmp[5]);
-    // client.onopen = () => {
-    //   console.log('WebSocket Client 1 Connected');
-    // };
+    client.onopen = () => {
+      console.log('WebSocket Client 1 Connected');
+    };
+    test_client.onopen = () => {
+      console.log('connect to test');
+      // eslint-disable-next-line no-useless-escape
+
+      let name = '{\"vm\":[\"172-17-191-254\",\"172-17-191-256\"]}';
+      console.log(name);
+      test_client.send(name);
+    }
+
+    test_client.onmessage = test_message => {
+      console.log(test_message.data);
+    }
     // const tmp = this.state.currentTabKey;
     // const tmp2 = this.state.rangePickerValue;
-    // client.onmessage = message => {
-    //   const data = JSON.parse(message.data);
-    //   // console.log(typeof (data.data));
-    //   // console.log(data.chart);
-    //   this.setState({
-    //     offlineChartData: JSON.parse(data.chart),
-    //   });
-    // };
-    client2.onmessage = message => {
+    client.onmessage = message => {
       const data = JSON.parse(message.data);
       console.log(data);
+      this.setState({
+        offlineChartData: JSON.parse(data.chart),
+      });
+    };
+    client2.onmessage = message => {
+      const data = JSON.parse(message.data);
+      // console.log(data);
       // console.log(typeof (data.data));
       let origindata = this.state.activeData;
       const numberPattern = /\d+/g;
@@ -120,12 +135,15 @@ class Analysis extends Component<AnalysisProps, AnalysisState> {
       const id = name.match(numberPattern);
       origindata[id] = JSON.parse(data.active);
       // console.log(id);
-      // console.log(origindata);
+      // console.log(o  rigindata);
       this.setState({
         activeData: origindata,
       });
     };
-  }
+    setInterval(() => {
+      this.setState({ time: ++this.state.time })
+    }, 1000);
+}
 
   componentWillUnmount() {
     const { dispatch } = this.props;
@@ -143,55 +161,16 @@ class Analysis extends Component<AnalysisProps, AnalysisState> {
     console.log(key);
   };
 
-  handleRangePickerChange = (rangePickerValue: RangePickerValue) => {
-    const { dispatch } = this.props;
-    this.setState({
-      rangePickerValue,
-    });
-
-    dispatch({
-      type: 'dashboardAndanalysis/fetchSalesData',
-    });
-  };
-
-  selectDate = (type: 'today' | 'week' | 'month' | 'year') => {
-    const { dispatch } = this.props;
-    this.setState({
-      rangePickerValue: getTimeDistance(type),
-    });
-
-    dispatch({
-      type: 'dashboardAndanalysis/fetchSalesData',
-    });
-  };
-
-  isActive = (type: 'today' | 'week' | 'month' | 'year') => {
-    const { rangePickerValue } = this.state;
-    const value = getTimeDistance(type);
-    if (!rangePickerValue[0] || !rangePickerValue[1]) {
-      return '';
-    }
-    if (
-      rangePickerValue[0].isSame(value[0], 'day') &&
-      rangePickerValue[1].isSame(value[1], 'day')
-    ) {
-      return styles.currentDate;
-    }
-    return '';
-  };
-
-  // eslint-disable-next-line react/sort-comp
   render() {
-    const { currentTabKey, activeData, offlineChartData } = this.state;
+    const { currentTabKey, activeData, offlineChartData, time } = this.state;
     const { dashboardAndanalysis, loading } = this.props;
     const { visitData, offlineData } = dashboardAndanalysis;
-
     const activeKey = currentTabKey || (offlineData[0] && offlineData[0].name);
     return (
       <GridContent>
         <React.Fragment>
           <Suspense fallback={<PageLoading />}>
-            <IntroduceRow loading={loading} visitData={visitData} />
+            <IntroduceRow loading={loading} visitData={visitData} time={time} />
           </Suspense>
 
           <Suspense fallback={null}>

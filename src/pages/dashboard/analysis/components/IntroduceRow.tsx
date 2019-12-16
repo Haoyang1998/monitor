@@ -1,6 +1,6 @@
-import { Col, Icon, Row, Tooltip } from 'antd';
+import {Card, Col, Icon, Row, Tooltip} from 'antd';
 
-import { FormattedMessage } from 'umi-plugin-react/locale';
+import { FormattedMessage, formatMessage } from 'umi-plugin-react/locale';
 import React from 'react';
 import numeral from 'numeral';
 import { ChartCard, MiniArea, MiniBar, MiniProgress, Field } from './Charts';
@@ -18,7 +18,7 @@ const topColResponsiveProps = {
   style: { marginBottom: 24 },
 };
 
-const IntroduceRow = ({ loading, visitData }: { loading: boolean; visitData: VisitDataType[] }) => (
+const IntroduceRow = ({ loading, visitData, time }: { loading: boolean; visitData: VisitDataType[]; time: number }) => (
   <Row gutter={24} type="flex">
     <Col {...topColResponsiveProps}>
       <ChartCard
@@ -36,25 +36,18 @@ const IntroduceRow = ({ loading, visitData }: { loading: boolean; visitData: Vis
           </Tooltip>
         }
         loading={loading}
-        total={() => <Yuan>126560</Yuan>}
+        total={ time }
         footer={
           <Field
             label={
               <FormattedMessage id="dashboardandanalysis.analysis.day-sales" defaultMessage="Daily Sales" />
             }
-            value={`￥${numeral(12423).format('0,0')}`}
+            value={`${numeral(12423).format('0,0')}`}
           />
         }
         contentHeight={46}
       >
-        <Trend flag="up" style={{ marginRight: 16 }}>
-          <FormattedMessage id="dashboardandanalysis.analysis.week" defaultMessage="Weekly Changes" />
-          <span className={styles.trendText}>12%</span>
-        </Trend>
-        <Trend flag="down">
-          <FormattedMessage id="dashboardandanalysis.analysis.day" defaultMessage="Daily Changes" />
-          <span className={styles.trendText}>11%</span>
-        </Trend>
+        <MiniProgress percent={time} strokeWidth={8} target={80} color="#13C2C2" />
       </ChartCard>
     </Col>
 

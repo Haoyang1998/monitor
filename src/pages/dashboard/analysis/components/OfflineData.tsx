@@ -67,7 +67,7 @@ const OfflineData = ({
               data={offlineChartData}
               titleMap={{
                 y1: formatMessage({ id: 'dashboardandanalysis.analysis.traffic' }),
-                y2: formatMessage({ id: 'dashboardandanalysis.analysis.payments' }),
+                // y2: formatMessage({ id: 'dashboardandanalysis.analysis.payments' }),
               }}
             />
           </div>

@@ -80,8 +80,8 @@ const TimelineChart: React.FC<TimelineChartProps> = props => {
 
   const timeScale = {
     type: 'time',
-    tickInterval: 60 * 60 * 1000,
-    mask: 'HH:mm',
+    tickInterval: 1000,
+    mask: 'hh:mm',
     range: [0, 1],
   };
 
@@ -118,7 +118,6 @@ const TimelineChart: React.FC<TimelineChartProps> = props => {
         {title && <h4>{title}</h4>}
         <Chart height={height} padding={padding} data={dv} scale={cols} forceFit>
           <Axis name="x" />
-          <Tooltip />
           <Legend name="key" position="top" />
           <Geom type="line" position="x*value" size={borderWidth} color="key" />
         </Chart>

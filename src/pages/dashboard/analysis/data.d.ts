@@ -19,7 +19,7 @@ export interface OfflineDataType {
 export interface OfflineChartData {
   x: any;
   y1: number;
-  y2: number;
+  // y2: number;
 }
 
 export interface RadarData {
